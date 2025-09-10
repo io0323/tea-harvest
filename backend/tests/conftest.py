@@ -3,7 +3,7 @@ Test configuration and fixtures
 """
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
+from unittest.mock import patch
 
 
 @pytest.fixture
@@ -28,19 +28,20 @@ def mock_model():
 
 @pytest.fixture
 def client_with_mock_model(mock_model):
-    """Test client with the dummy model injected into app.main.model."""
-    import app.main as main_module
-    original_model = main_module.model
-    main_module.model = mock_model
-    try:
+    """Test client with the dummy model injected before app startup."""
+    # Patch the model before importing the app
+    with patch('app.main.model', mock_model):
+        # Import app after patching to ensure model is set during startup
+        from app.main import app
         with TestClient(app) as test_client:
             yield test_client
-    finally:
-        main_module.model = original_model
 
 
 @pytest.fixture
 def client_without_model():
     """Test client without model (for testing 503 errors)."""
-    with TestClient(app) as test_client:
-        yield test_client
+    # Ensure model is None before importing the app
+    with patch('app.main.model', None):
+        from app.main import app
+        with TestClient(app) as test_client:
+            yield test_client

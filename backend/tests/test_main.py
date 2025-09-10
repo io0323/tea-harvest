@@ -2,21 +2,17 @@
 Main application tests
 """
 import pytest
-from fastapi.testclient import TestClient
-from app.main import app
-
-client = TestClient(app)
 
 
-def test_read_root():
+def test_read_root(client_without_model):
     """Test root endpoint"""
-    response = client.get("/")
+    response = client_without_model.get("/")
     assert response.status_code == 200
 
 
-def test_health_check():
+def test_health_check(client_without_model):
     """Test health check endpoint"""
-    response = client.get("/health")
+    response = client_without_model.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "healthy"}
 
