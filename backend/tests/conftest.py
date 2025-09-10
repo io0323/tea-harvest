@@ -34,22 +34,49 @@ def mock_model_files():
     """Create mock model files for testing."""
     import tempfile
     import os
+    import tensorflow as tf
+    import joblib
+    import numpy as np
     
     # Create temporary directory for mock model files
     temp_dir = tempfile.mkdtemp()
     model_dir = os.path.join(temp_dir, "app", "models", "saved")
     os.makedirs(model_dir, exist_ok=True)
     
-    # Create mock model files
+    # Create a minimal valid TensorFlow/Keras model
+    model = tf.keras.Sequential([
+        tf.keras.layers.LSTM(64, input_shape=(30, 6), return_sequences=True),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.LSTM(32),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Dense(16, activation='relu'),
+        tf.keras.layers.Dense(1)
+    ])
+    
+    model.compile(
+        optimizer='adam',
+        loss='mse',
+        metrics=['mae']
+    )
+    
+    # Create dummy data to initialize the model
+    dummy_data = np.random.rand(1, 30, 6).astype('float32')
+    model.predict(dummy_data)  # Initialize the model
+    
+    # Save the model
     model_file = os.path.join(model_dir, "model.h5")
+    model.save(model_file)
+    
+    # Create mock preprocessors
     preprocessors_file = os.path.join(model_dir, "preprocessors.pkl")
+    mock_preprocessors = {
+        'scaler': None,
+        'region_encoder': {'静岡': 0, '京都': 1},
+        'imputer': None,
+        'feature_ranges': None
+    }
     
-    # Create dummy files
-    with open(model_file, "wb") as f:
-        f.write(b"MOCK MODEL CONTENT")
-    
-    with open(preprocessors_file, "wb") as f:
-        f.write(b"MOCK PREPROCESSORS CONTENT")
+    joblib.dump(mock_preprocessors, preprocessors_file)
     
     yield temp_dir
     
@@ -71,6 +98,22 @@ def client_with_mock_model(mock_model, mock_model_files):
             from app.main import app
             with TestClient(app) as test_client:
                 yield test_client
+    finally:
+        os.chdir(original_cwd)
+
+
+@pytest.fixture
+def client_with_real_model_files(mock_model_files):
+    """Test client with real model files but mocked model object."""
+    # Change to the temporary directory with mock model files
+    original_cwd = os.getcwd()
+    os.chdir(mock_model_files)
+    
+    try:
+        # Import app after setting up model files
+        from app.main import app
+        with TestClient(app) as test_client:
+            yield test_client
     finally:
         os.chdir(original_cwd)
 
