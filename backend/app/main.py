@@ -5,7 +5,7 @@ import numpy as np
 from datetime import datetime, timedelta
 from typing import Optional
 from pathlib import Path
-from models.tea_harvest_model import TeaHarvestModel
+from .models.tea_harvest_model import TeaHarvestModel
 import io
 import logging
 from .exceptions import (
@@ -52,7 +52,7 @@ app.add_middleware(
 )
 
 # モデルの読み込み
-MODEL_PATH = Path("models/saved")
+MODEL_PATH = Path("app/models/saved")
 model = None
 
 @app.on_event("startup")
