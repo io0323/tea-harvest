@@ -69,6 +69,11 @@ async def load_model():
 async def root():
     return {"message": "TeaHarvest API"}
 
+@app.get("/health")
+async def health_check():
+    """ヘルスチェックエンドポイント"""
+    return {"status": "healthy"}
+
 @app.post("/predict")
 async def predict_harvest_date(
     file: UploadFile = File(...),
