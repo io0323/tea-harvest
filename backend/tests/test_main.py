@@ -49,8 +49,46 @@ def test_tea_harvest_prediction():
     )
     
     # The test might fail due to model not being loaded, but should not be 422
-    assert response.status_code in [200, 500]  # 500 is expected if model is not loaded
+    assert response.status_code in [200, 500, 503]  # 503 is expected if model is not loaded
     if response.status_code == 200:
         response_data = response.json()
         assert "predicted_date" in response_data
         assert "confidence_score" in response_data
+    elif response.status_code == 503:
+        # Model not loaded - this is expected in test environment
+        response_data = response.json()
+        assert "error" in response_data
+        assert "予測モデルが利用できません" in response_data["error"]
+
+
+def test_tea_harvest_prediction_with_mock_model(client_with_mock_model):
+    """Test tea harvest prediction endpoint with mocked model"""
+    import io
+    import pandas as pd
+    
+    # Sample weather data for 30 days
+    dates = pd.date_range(start='2024-01-01', periods=30, freq='D')
+    test_data = pd.DataFrame({
+        'date': dates,
+        'temperature': [25.0] * 30,
+        'humidity': [60.0] * 30,
+        'precipitation': [5.0] * 30,
+        'sunshine': [8.0] * 30
+    })
+    
+    # Convert to CSV string
+    csv_data = test_data.to_csv(index=False)
+    csv_file = io.BytesIO(csv_data.encode('utf-8'))
+    
+    # Test file upload with mocked model
+    response = client_with_mock_model.post(
+        "/predict",
+        files={"file": ("test_data.csv", csv_file, "text/csv")},
+        data={"region": "静岡", "year": 2024}
+    )
+    
+    # With mocked model, should return 200
+    assert response.status_code == 200
+    response_data = response.json()
+    assert "predicted_date" in response_data
+    assert "confidence_score" in response_data
