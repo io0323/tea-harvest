@@ -55,7 +55,7 @@ def mock_model_files():
     
     model.compile(
         optimizer='adam',
-        loss='mse',
+        loss=tf.keras.losses.MeanSquaredError(),
         metrics=[tf.keras.metrics.MeanAbsoluteError()]
     )
     
