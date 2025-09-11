@@ -281,7 +281,7 @@ class TeaHarvestModel:
         model_path.parent.mkdir(parents=True, exist_ok=True)
         
         # モデルの保存
-        self.model.save(str(model_path / 'model.h5'))
+        self.model.save(str(model_path / 'model.keras'))
         
         # 前処理用オブジェクトの保存
         joblib.dump({
@@ -310,7 +310,7 @@ class TeaHarvestModel:
         model = cls()
         
         # モデルの読み込み
-        model.model = tf.keras.models.load_model(str(model_path / 'model.h5'))
+        model.model = tf.keras.models.load_model(str(model_path / 'model.keras'))
         
         # 前処理用オブジェクトの読み込み
         preprocessors = joblib.load(str(model_path / 'preprocessors.pkl'))

@@ -60,7 +60,7 @@ async def load_model():
     global model
     try:
         # テスト環境ではモデルファイルが存在しない可能性があるため、存在チェックを行う
-        if MODEL_PATH.exists() and (MODEL_PATH / 'model.h5').exists():
+        if MODEL_PATH.exists() and (MODEL_PATH / 'model.keras').exists():
             model = TeaHarvestModel.load(MODEL_PATH)
             logger.info("モデルの読み込みが完了しました")
         else:

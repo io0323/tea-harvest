@@ -56,15 +56,15 @@ def mock_model_files():
     model.compile(
         optimizer='adam',
         loss='mse',
-        metrics=['mae']
+        metrics=[tf.keras.metrics.MeanAbsoluteError()]
     )
     
     # Create dummy data to initialize the model
     dummy_data = np.random.rand(1, 30, 6).astype('float32')
     model.predict(dummy_data)  # Initialize the model
     
-    # Save the model
-    model_file = os.path.join(model_dir, "model.h5")
+    # Save the model in Keras native format
+    model_file = os.path.join(model_dir, "model.keras")
     model.save(model_file)
     
     # Create mock preprocessors
