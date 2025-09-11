@@ -55,8 +55,8 @@ def mock_model_files():
     
     model.compile(
         optimizer='adam',
-        loss=tf.keras.losses.MeanSquaredError(),
-        metrics=[tf.keras.metrics.MeanAbsoluteError()]
+        loss='mse',
+        metrics=['mae']
     )
     
     # Create dummy data to initialize the model

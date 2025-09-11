@@ -55,8 +55,8 @@ class TeaHarvestModel:
         
         model.compile(
             optimizer='adam',
-            loss=tf.keras.losses.MeanSquaredError(),
-            metrics=[tf.keras.metrics.MeanAbsoluteError()]
+            loss='mse',
+            metrics=['mae']
         )
         
         return model
@@ -310,7 +310,16 @@ class TeaHarvestModel:
         model = cls()
         
         # モデルの読み込み
-        model.model = tf.keras.models.load_model(str(model_path / 'model.keras'))
+        try:
+            # まず.keras形式で読み込みを試行
+            model.model = tf.keras.models.load_model(str(model_path / 'model.keras'))
+        except:
+            # .keras形式で読み込めない場合は、.h5形式でcustom_objectsを指定して読み込み
+            custom_objects = {
+                'mse': tf.keras.losses.MeanSquaredError(),
+                'mae': tf.keras.metrics.MeanAbsoluteError()
+            }
+            model.model = tf.keras.models.load_model(str(model_path / 'model.h5'), custom_objects=custom_objects)
         
         # 前処理用オブジェクトの読み込み
         preprocessors = joblib.load(str(model_path / 'preprocessors.pkl'))
