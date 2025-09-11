@@ -55,8 +55,8 @@ class TeaHarvestModel:
         
         model.compile(
             optimizer='adam',
-            loss='mse',
-            metrics=['mae']
+            loss=tf.keras.losses.MeanSquaredError(),
+            metrics=[tf.keras.metrics.MeanAbsoluteError()]
         )
         
         return model
