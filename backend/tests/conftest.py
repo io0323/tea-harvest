@@ -145,6 +145,11 @@ def client_with_simple_mock():
             X = np.random.rand(1, 30, 6).astype(np.float32)
             y = np.array([30.0], dtype=np.float32)
             return X, y
+        
+        # Add properties that might be accessed
+        @property
+        def model(self):
+            return self
     
     mock_model = SimpleMockModel()
     

@@ -309,17 +309,28 @@ class TeaHarvestModel:
         # モデルのインスタンス化
         model = cls()
         
+        # Kerasの安全でないデシリアライゼーションを有効化
+        tf.keras.config.enable_unsafe_deserialization()
+        
         # モデルの読み込み
         try:
             # まず.keras形式で読み込みを試行
-            model.model = tf.keras.models.load_model(str(model_path / 'model.keras'))
+            model.model = tf.keras.models.load_model(
+                str(model_path / 'model.keras'),
+                safe_mode=False
+            )
         except:
             # .keras形式で読み込めない場合は、.h5形式でcustom_objectsを指定して読み込み
             custom_objects = {
                 'mse': tf.keras.losses.MeanSquaredError(),
-                'mae': tf.keras.metrics.MeanAbsoluteError()
+                'mae': tf.keras.metrics.MeanAbsoluteError(),
+                'Adam': tf.keras.optimizers.Adam
             }
-            model.model = tf.keras.models.load_model(str(model_path / 'model.h5'), custom_objects=custom_objects)
+            model.model = tf.keras.models.load_model(
+                str(model_path / 'model.h5'), 
+                custom_objects=custom_objects,
+                safe_mode=False
+            )
         
         # 前処理用オブジェクトの読み込み
         preprocessors = joblib.load(str(model_path / 'preprocessors.pkl'))

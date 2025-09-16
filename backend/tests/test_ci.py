@@ -70,10 +70,12 @@ def test_ci_api():
         class CIMockModel:
             def predict(self, X):
                 import numpy as np
+                # Return proper numpy array with correct shape
                 return np.array([[30.0]], dtype=np.float32)
             
             def preprocess_data(self, df):
                 import numpy as np
+                # Return proper numpy arrays
                 X = np.random.rand(1, 30, 6).astype(np.float32)
                 y = np.array([30.0], dtype=np.float32)
                 return X, y
@@ -82,6 +84,11 @@ def test_ci_api():
                 pass
             
             def load_model(self, path):
+                return self
+            
+            # Add properties that might be accessed
+            @property
+            def model(self):
                 return self
         
         mock_model = CIMockModel()
