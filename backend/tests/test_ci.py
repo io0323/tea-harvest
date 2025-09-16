@@ -66,13 +66,17 @@ def test_ci_api():
         sys.modules['tensorflow.keras.optimizers'] = tensorflow_mock.keras.optimizers
         sys.modules['tensorflow.keras.callbacks'] = tensorflow_mock.keras.callbacks
         
-        # Mock the model class
+        # Mock the model class with proper return types
         class CIMockModel:
             def predict(self, X):
-                return [[30.0]]
+                import numpy as np
+                return np.array([[30.0]], dtype=np.float32)
             
             def preprocess_data(self, df):
-                return [[1, 2, 3]], [30.0]
+                import numpy as np
+                X = np.random.rand(1, 30, 6).astype(np.float32)
+                y = np.array([30.0], dtype=np.float32)
+                return X, y
             
             def save_model(self, path):
                 pass
@@ -131,14 +135,17 @@ def test_ci_api():
                         assert "prediction" in result
                     
         print("✅ All CI tests passed!")
-        return True
         
     except Exception as e:
         print(f"❌ CI test failed: {e}")
         import traceback
         traceback.print_exc()
-        return False
+        raise
 
 if __name__ == "__main__":
-    success = test_ci_api()
-    sys.exit(0 if success else 1)
+    try:
+        test_ci_api()
+        print("✅ Test completed successfully")
+    except Exception as e:
+        print(f"❌ Test failed: {e}")
+        sys.exit(1)

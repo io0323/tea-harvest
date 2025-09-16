@@ -142,7 +142,7 @@ def client_with_simple_mock():
             return np.array([[30.0]], dtype=np.float32)
         
         def preprocess_data(self, df):
-            X = np.random.rand(1, 30, 6).astype("float32")
+            X = np.random.rand(1, 30, 6).astype(np.float32)
             y = np.array([30.0], dtype=np.float32)
             return X, y
     
