@@ -51,8 +51,8 @@ def test_tea_harvest_prediction(client_without_model):
     assert "予測モデルが利用できません" in response_data["error"]
 
 
-def test_tea_harvest_prediction_with_mock_model(client_with_mock_model):
-    """Test tea harvest prediction endpoint with mocked model"""
+def test_tea_harvest_prediction_with_mock_model(client_with_simple_mock):
+    """Test tea harvest prediction endpoint with simple mock model"""
     import io
     import pandas as pd
     
@@ -70,14 +70,14 @@ def test_tea_harvest_prediction_with_mock_model(client_with_mock_model):
     csv_data = test_data.to_csv(index=False)
     csv_file = io.BytesIO(csv_data.encode('utf-8'))
     
-    # Test file upload with mocked model
-    response = client_with_mock_model.post(
+    # Test file upload with simple mock model
+    response = client_with_simple_mock.post(
         "/predict",
         files={"file": ("test_data.csv", csv_file, "text/csv")},
         data={"region": "静岡", "year": 2024}
     )
     
-    # With mocked model, should return 200
+    # With simple mock model, should return 200
     assert response.status_code == 200
     response_data = response.json()
     assert "predicted_date" in response_data

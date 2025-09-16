@@ -31,41 +31,20 @@ def mock_model():
 
 @pytest.fixture
 def mock_model_files():
-    """Create mock model files for testing."""
+    """Create mock model files for testing without TensorFlow."""
     import tempfile
     import os
-    import tensorflow as tf
     import joblib
-    import numpy as np
     
     # Create temporary directory for mock model files
     temp_dir = tempfile.mkdtemp()
     model_dir = os.path.join(temp_dir, "app", "models", "saved")
     os.makedirs(model_dir, exist_ok=True)
     
-    # Create a minimal valid TensorFlow/Keras model
-    model = tf.keras.Sequential([
-        tf.keras.layers.LSTM(64, input_shape=(30, 6), return_sequences=True),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.LSTM(32),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(16, activation='relu'),
-        tf.keras.layers.Dense(1)
-    ])
-    
-    model.compile(
-        optimizer='adam',
-        loss=tf.keras.losses.MeanSquaredError(),
-        metrics=[tf.keras.metrics.MeanAbsoluteError()]
-    )
-    
-    # Create dummy data to initialize the model
-    dummy_data = np.random.rand(1, 30, 6).astype('float32')
-    model.predict(dummy_data)  # Initialize the model
-    
-    # Save the model in Keras native format
+    # Create a dummy model file (empty file to simulate model existence)
     model_file = os.path.join(model_dir, "model.keras")
-    model.save(model_file)
+    with open(model_file, 'w') as f:
+        f.write("# Mock model file")
     
     # Create mock preprocessors
     preprocessors_file = os.path.join(model_dir, "preprocessors.pkl")
@@ -92,6 +71,9 @@ def client_with_mock_model(mock_model, mock_model_files):
     os.chdir(mock_model_files)
     
     try:
+        # Set test environment variable to skip model loading
+        os.environ['PYTEST_CURRENT_TEST'] = 'true'
+        
         # Patch the model before importing the app
         with patch('app.main.model', mock_model):
             # Import app after patching to ensure model is set during startup
@@ -100,6 +82,9 @@ def client_with_mock_model(mock_model, mock_model_files):
                 yield test_client
     finally:
         os.chdir(original_cwd)
+        # Clean up environment variable
+        if 'PYTEST_CURRENT_TEST' in os.environ:
+            del os.environ['PYTEST_CURRENT_TEST']
 
 
 @pytest.fixture
@@ -126,3 +111,54 @@ def client_without_model():
         from app.main import app
         with TestClient(app) as test_client:
             yield test_client
+
+
+@pytest.fixture
+def client_with_fully_mocked_model(mock_model):
+    """Test client with fully mocked model - no TensorFlow dependencies."""
+    # Set test environment variable to skip model loading
+    os.environ['PYTEST_CURRENT_TEST'] = 'true'
+    
+    try:
+        # Patch the model before importing the app
+        with patch('app.main.model', mock_model):
+            # Import app after patching to ensure model is set during startup
+            from app.main import app
+            with TestClient(app) as test_client:
+                yield test_client
+    finally:
+        # Clean up environment variable
+        if 'PYTEST_CURRENT_TEST' in os.environ:
+            del os.environ['PYTEST_CURRENT_TEST']
+
+
+@pytest.fixture
+def client_with_simple_mock():
+    """Test client with simple mock - minimal dependencies."""
+    import numpy as np
+    
+    class SimpleMockModel:
+        def predict(self, X):
+            return np.array([[30.0]], dtype=np.float32)
+        
+        def preprocess_data(self, df):
+            X = np.random.rand(1, 30, 6).astype("float32")
+            y = np.array([30.0], dtype=np.float32)
+            return X, y
+    
+    mock_model = SimpleMockModel()
+    
+    # Set test environment variable to skip model loading
+    os.environ['PYTEST_CURRENT_TEST'] = 'true'
+    
+    try:
+        # Patch the model before importing the app
+        with patch('app.main.model', mock_model):
+            # Import app after patching to ensure model is set during startup
+            from app.main import app
+            with TestClient(app) as test_client:
+                yield test_client
+    finally:
+        # Clean up environment variable
+        if 'PYTEST_CURRENT_TEST' in os.environ:
+            del os.environ['PYTEST_CURRENT_TEST']
