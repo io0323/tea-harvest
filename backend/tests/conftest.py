@@ -152,12 +152,17 @@ def client_with_simple_mock():
     os.environ['PYTEST_CURRENT_TEST'] = 'true'
     
     try:
-        # Patch the model before importing the app
+        # Mock the load_model function to return our mock model
+        def mock_load_model(path):
+            return mock_model
+        
+        # Patch both the model and load_model function
         with patch('app.main.model', mock_model):
-            # Import app after patching to ensure model is set during startup
-            from app.main import app
-            with TestClient(app) as test_client:
-                yield test_client
+            with patch('app.main.load_model', mock_load_model):
+                # Import app after patching to ensure model is set during startup
+                from app.main import app
+                with TestClient(app) as test_client:
+                    yield test_client
     finally:
         # Clean up environment variable
         if 'PYTEST_CURRENT_TEST' in os.environ:
