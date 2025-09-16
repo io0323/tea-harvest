@@ -141,6 +141,9 @@ def client_with_fully_mocked_model(mock_model):
 def client_with_simple_mock():
     """Test client with simple mock - minimal dependencies."""
     import numpy as np
+    import io
+    import pandas as pd
+    from unittest.mock import patch, MagicMock
     
     class SimpleMockModel:
         def predict(self, X):
@@ -158,6 +161,23 @@ def client_with_simple_mock():
     
     mock_model = SimpleMockModel()
     
+    # Mock file operations to return proper bytes
+    def mock_open(file_path, mode='r'):
+        if 'b' in mode:
+            return MagicMock(read=MagicMock(return_value=b'mock file content'))
+        else:
+            return MagicMock(read=MagicMock(return_value='mock file content'))
+    
+    # Mock pandas operations to return proper data
+    def mock_read_csv(file_path):
+        return pd.DataFrame({
+            'date': pd.date_range(start='2024-01-01', periods=30, freq='D'),
+            'temperature': [25.0] * 30,
+            'humidity': [60.0] * 30,
+            'precipitation': [5.0] * 30,
+            'sunshine': [8.0] * 30
+        })
+    
     # Set test environment variable to skip model loading
     os.environ['PYTEST_CURRENT_TEST'] = 'true'
     
@@ -166,13 +186,15 @@ def client_with_simple_mock():
         def mock_load_model(path):
             return mock_model
         
-        # Patch both the model and load_model function
+        # Patch everything before importing
         with patch('app.main.model', mock_model):
             with patch('app.main.load_model', mock_load_model):
-                # Import app after patching to ensure model is set during startup
-                from app.main import app
-                with TestClient(app) as test_client:
-                    yield test_client
+                with patch('builtins.open', mock_open):
+                    with patch('pandas.read_csv', mock_read_csv):
+                        # Import app after patching to ensure model is set during startup
+                        from app.main import app
+                        with TestClient(app) as test_client:
+                            yield test_client
     finally:
         # Clean up environment variable with guard
         try:
