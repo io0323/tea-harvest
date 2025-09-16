@@ -97,57 +97,70 @@ def test_ci_api():
         def mock_load_model(path):
             return mock_model
         
-        # Mock file operations to return bytes
+        # Mock file operations to return proper bytes
         def mock_open(file_path, mode='r'):
             if 'b' in mode:
                 return MagicMock(read=MagicMock(return_value=b'mock file content'))
             else:
                 return MagicMock(read=MagicMock(return_value='mock file content'))
         
+        # Mock pandas operations to return proper data
+        def mock_read_csv(file_path):
+            import pandas as pd
+            return pd.DataFrame({
+                'date': pd.date_range(start='2024-01-01', periods=30, freq='D'),
+                'temperature': [25.0] * 30,
+                'humidity': [60.0] * 30,
+                'precipitation': [5.0] * 30,
+                'sunshine': [8.0] * 30
+            })
+        
         # Patch everything before importing
         with patch('app.models.tea_harvest_model.TeaHarvestModel', CIMockModel):
             with patch('app.main.load_model', mock_load_model):
                 with patch('app.main.model', mock_model):
-                    # Import after all patching
-                    from app.main import app
-                    print("✓ App imported successfully")
-                    
-                    # Test with FastAPI TestClient
-                    from fastapi.testclient import TestClient
-                    client = TestClient(app)
-                    
-                    # Test root endpoint
-                    response = client.get("/")
-                    print(f"✓ Root endpoint: {response.status_code}")
-                    assert response.status_code == 200
-                    
-                    # Test health endpoint
-                    response = client.get("/health")
-                    print(f"✓ Health endpoint: {response.status_code}")
-                    assert response.status_code == 200
-                    
-                    # Test prediction endpoint with mock data
-                    test_data = {
-                        "temperature": 25.0,
-                        "humidity": 60.0,
-                        "rainfall": 100.0,
-                        "soil_moisture": 50.0,
-                        "sunlight_hours": 8.0,
-                        "wind_speed": 5.0
-                    }
-                    
-                    response = client.post("/predict", json=test_data)
-                    print(f"✓ Prediction endpoint: {response.status_code}")
-                    
-                    if response.status_code != 200:
-                        print(f"Response content: {response.text}")
-                        # For now, just check that the endpoint exists
-                        assert response.status_code in [200, 422]  # Allow validation errors
-                    else:
-                        result = response.json()
-                        print(f"✓ Prediction result: {result}")
-                        assert "prediction" in result
-                    
+                    with patch('builtins.open', mock_open):
+                        with patch('pandas.read_csv', mock_read_csv):
+                            # Import after all patching
+                            from app.main import app
+                            print("✓ App imported successfully")
+                            
+                            # Test with FastAPI TestClient
+                            from fastapi.testclient import TestClient
+                            client = TestClient(app)
+                            
+                            # Test root endpoint
+                            response = client.get("/")
+                            print(f"✓ Root endpoint: {response.status_code}")
+                            assert response.status_code == 200
+                            
+                            # Test health endpoint
+                            response = client.get("/health")
+                            print(f"✓ Health endpoint: {response.status_code}")
+                            assert response.status_code == 200
+                            
+                            # Test prediction endpoint with mock data
+                            test_data = {
+                                "temperature": 25.0,
+                                "humidity": 60.0,
+                                "rainfall": 100.0,
+                                "soil_moisture": 50.0,
+                                "sunlight_hours": 8.0,
+                                "wind_speed": 5.0
+                            }
+                            
+                            response = client.post("/predict", json=test_data)
+                            print(f"✓ Prediction endpoint: {response.status_code}")
+                            
+                            if response.status_code != 200:
+                                print(f"Response content: {response.text}")
+                                # For now, just check that the endpoint exists
+                                assert response.status_code in [200, 422]  # Allow validation errors
+                            else:
+                                result = response.json()
+                                print(f"✓ Prediction result: {result}")
+                                assert "prediction" in result
+                            
         print("✅ All CI tests passed!")
         
     except Exception as e:

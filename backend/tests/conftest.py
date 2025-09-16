@@ -128,7 +128,8 @@ def client_with_fully_mocked_model(mock_model):
                 yield test_client
     finally:
         # Clean up environment variable with guard
-        if 'PYTEST_CURRENT_TEST' in os.environ:
+        current_test = os.environ.get('PYTEST_CURRENT_TEST')
+        if current_test:
             del os.environ['PYTEST_CURRENT_TEST']
 
 
@@ -170,5 +171,6 @@ def client_with_simple_mock():
                     yield test_client
     finally:
         # Clean up environment variable with guard
-        if 'PYTEST_CURRENT_TEST' in os.environ:
+        current_test = os.environ.get('PYTEST_CURRENT_TEST')
+        if current_test:
             del os.environ['PYTEST_CURRENT_TEST']
