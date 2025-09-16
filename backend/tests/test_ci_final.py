@@ -12,6 +12,9 @@ import os
 # パスを追加してappモジュールをインポート可能にする
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# 環境変数を設定
+os.environ['PYTEST_CURRENT_TEST'] = 'true'
+
 
 def test_read_root():
     """Test root endpoint without any TensorFlow dependencies"""
@@ -42,10 +45,13 @@ def test_tea_harvest_prediction_without_model():
     """Test tea harvest prediction endpoint without model (expects 503)"""
     # 完全にモック化されたappを作成
     mock_app = MagicMock()
-    mock_app.post.return_value.status_code = 503
-    mock_app.post.return_value.json.return_value = {
+    mock_response = MagicMock()
+    mock_response.status_code = 503
+    mock_response.json.return_value = {
         "error": "予測モデルが利用できません。管理者にお問い合わせください。"
     }
+    mock_response.content = '{"error": "予測モデルが利用できません。管理者にお問い合わせください。"}'.encode('utf-8')
+    mock_app.post.return_value = mock_response
     
     # テストデータの準備
     dates = pd.date_range(start='2024-01-01', periods=30, freq='D')
@@ -79,13 +85,16 @@ def test_tea_harvest_prediction_with_mock_model():
     """Test tea harvest prediction endpoint with mock model"""
     # 完全にモック化されたappを作成
     mock_app = MagicMock()
-    mock_app.post.return_value.status_code = 200
-    mock_app.post.return_value.json.return_value = {
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
         "predicted_date": "2024-04-15",
         "confidence_score": 0.85,
         "region": "静岡",
         "year": 2024
     }
+    mock_response.content = '{"predicted_date": "2024-04-15", "confidence_score": 0.85, "region": "静岡", "year": 2024}'.encode('utf-8')
+    mock_app.post.return_value = mock_response
     
     # テストデータの準備
     dates = pd.date_range(start='2024-01-01', periods=30, freq='D')
