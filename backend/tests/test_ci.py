@@ -97,6 +97,13 @@ def test_ci_api():
         def mock_load_model(path):
             return mock_model
         
+        # Mock file operations to return bytes
+        def mock_open(file_path, mode='r'):
+            if 'b' in mode:
+                return MagicMock(read=MagicMock(return_value=b'mock file content'))
+            else:
+                return MagicMock(read=MagicMock(return_value='mock file content'))
+        
         # Patch everything before importing
         with patch('app.models.tea_harvest_model.TeaHarvestModel', CIMockModel):
             with patch('app.main.load_model', mock_load_model):

@@ -53,8 +53,11 @@ class TeaHarvestModel:
             Dense(1)  # 収穫日までの日数を予測
         ])
         
+        # オプティマイザーを明示的に設定
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+        
         model.compile(
-            optimizer='adam',
+            optimizer=optimizer,
             loss=tf.keras.losses.MeanSquaredError(),
             metrics=[tf.keras.metrics.MeanAbsoluteError()]
         )
@@ -280,8 +283,8 @@ class TeaHarvestModel:
         model_path = Path(model_path)
         model_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # モデルの保存
-        self.model.save(str(model_path / 'model.keras'))
+        # モデルの保存（オプティマイザーを含む）
+        self.model.save(str(model_path / 'model.keras'), include_optimizer=True)
         
         # 前処理用オブジェクトの保存
         joblib.dump({
@@ -314,10 +317,18 @@ class TeaHarvestModel:
         
         # モデルの読み込み
         try:
-            # まず.keras形式で読み込みを試行
+            # まず.keras形式で読み込みを試行（オプティマイザーなしで読み込み）
             model.model = tf.keras.models.load_model(
                 str(model_path / 'model.keras'),
+                compile=False,
                 safe_mode=False
+            )
+            # オプティマイザーを再コンパイル
+            optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+            model.model.compile(
+                optimizer=optimizer,
+                loss=tf.keras.losses.MeanSquaredError(),
+                metrics=[tf.keras.metrics.MeanAbsoluteError()]
             )
         except:
             # .keras形式で読み込めない場合は、.h5形式でcustom_objectsを指定して読み込み
@@ -329,7 +340,15 @@ class TeaHarvestModel:
             model.model = tf.keras.models.load_model(
                 str(model_path / 'model.h5'), 
                 custom_objects=custom_objects,
+                compile=False,
                 safe_mode=False
+            )
+            # オプティマイザーを再コンパイル
+            optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+            model.model.compile(
+                optimizer=optimizer,
+                loss=tf.keras.losses.MeanSquaredError(),
+                metrics=[tf.keras.metrics.MeanAbsoluteError()]
             )
         
         # 前処理用オブジェクトの読み込み
