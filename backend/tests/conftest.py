@@ -117,7 +117,7 @@ def client_without_model():
 def client_with_fully_mocked_model(mock_model):
     """Test client with fully mocked model - no TensorFlow dependencies."""
     # Set test environment variable to skip model loading
-    os.environ['PYTEST_CURRENT_TEST'] = 'true'
+    os.environ['PYTEST_CURRENT_TEST'] = 'test_tea_harvest_prediction_with_fully_mocked_model'
     
     try:
         # Patch the model before importing the app
@@ -179,7 +179,7 @@ def client_with_simple_mock():
         })
     
     # Set test environment variable to skip model loading
-    os.environ['PYTEST_CURRENT_TEST'] = 'true'
+    os.environ['PYTEST_CURRENT_TEST'] = 'test_tea_harvest_prediction_with_mock_model'
     
     try:
         # Mock the load_model function to return our mock model

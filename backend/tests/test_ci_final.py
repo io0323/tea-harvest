@@ -13,7 +13,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # 環境変数を設定
-os.environ['PYTEST_CURRENT_TEST'] = 'true'
+os.environ['PYTEST_CURRENT_TEST'] = 'test_ci_final'
 
 
 def test_read_root():
