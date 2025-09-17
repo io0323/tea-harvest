@@ -33,7 +33,7 @@ jobs:
       - name: Run tests
         run: |
           cd backend
-          python -m pytest tests/test_ci_ultimate_fixed.py -v
+          python -m pytest tests/test_ci_perfect.py -v
           echo "Test exit code: $?"
         continue-on-error: false
     
