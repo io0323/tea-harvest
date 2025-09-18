@@ -24,6 +24,8 @@ def test_read_root():
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"message": "Welcome to Tea Harvest Prediction API"}
+    # bytes-likeオブジェクトを正しく設定
+    mock_response.content = b'{"message": "Welcome to Tea Harvest Prediction API"}'
     mock_app.get.return_value = mock_response
     
     # テスト実行
@@ -39,6 +41,8 @@ def test_health_check():
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"status": "healthy"}
+    # bytes-likeオブジェクトを正しく設定
+    mock_response.content = b'{"status": "healthy"}'
     mock_app.get.return_value = mock_response
     
     # テスト実行
@@ -294,11 +298,13 @@ def test_comprehensive_api_flow():
     mock_root_response = MagicMock()
     mock_root_response.status_code = 200
     mock_root_response.json.return_value = {"message": "Welcome to Tea Harvest Prediction API"}
+    mock_root_response.content = b'{"message": "Welcome to Tea Harvest Prediction API"}'
     
     # Health endpoint
     mock_health_response = MagicMock()
     mock_health_response.status_code = 200
     mock_health_response.json.return_value = {"status": "healthy"}
+    mock_health_response.content = b'{"status": "healthy"}'
     
     # Prediction endpoint (without model)
     mock_prediction_response = MagicMock()
@@ -337,7 +343,7 @@ def test_error_handling():
     mock_response = MagicMock()
     mock_response.status_code = 500
     mock_response.json.return_value = {"error": "Internal Server Error"}
-    mock_response.content = '{"error": "Internal Server Error"}'.encode('utf-8')
+    mock_response.content = b'{"error": "Internal Server Error"}'
     mock_app.post.return_value = mock_response
     
     # テスト実行
@@ -354,7 +360,7 @@ def test_data_validation():
     mock_response = MagicMock()
     mock_response.status_code = 422
     mock_response.json.return_value = {"error": "Validation Error"}
-    mock_response.content = '{"error": "Validation Error"}'.encode('utf-8')
+    mock_response.content = b'{"error": "Validation Error"}'
     mock_app.post.return_value = mock_response
     
     # テスト実行
