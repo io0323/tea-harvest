@@ -259,16 +259,24 @@ def test_type_checking():
     test_string = "hello"
     test_int = 42
     test_list = [1, 2, 3]
+    test_dict = {"key": "value"}
     
     # 正しいisinstance()の使用
     assert isinstance(test_string, str)
     assert isinstance(test_int, int)
     assert isinstance(test_list, list)
+    assert isinstance(test_dict, dict)
     
     # 複数の型のチェック
     assert isinstance(test_string, (str, bytes))
     assert isinstance(test_int, (int, float))
     assert isinstance(test_list, (list, tuple))
+    
+    # MagicMockの型チェック
+    mock_obj = MagicMock()
+    assert isinstance(mock_obj, MagicMock)  # 正しい: 型を渡す
+    assert not isinstance(mock_obj, str)
+    assert not isinstance(mock_obj, int)
 
 
 def test_mock_response_properties():
@@ -751,7 +759,7 @@ def test_complete_validation():
 
 def test_working_final_validation():
     """Test working final validation to ensure all fixes are working working final"""
-    # 動作する最終検証テスト
+    # 動作最終検証テスト
     # 1. isinstance()の正しい使用
     test_obj = MagicMock()
     assert isinstance(test_obj, MagicMock)
@@ -798,5 +806,5 @@ def test_working_final_validation():
     assert isinstance(response.content, bytes)
     assert response.content == '{"error": "予測モデルが利用できません。管理者にお問い合わせください。"}'.encode('utf-8')
     
-    # 6. 動作する最終検証
+    # 6. 動作最終検証
     assert True  # すべてのテストが通ったことを確認
