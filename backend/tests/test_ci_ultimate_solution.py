@@ -259,16 +259,24 @@ def test_type_checking():
     test_string = "hello"
     test_int = 42
     test_list = [1, 2, 3]
+    test_dict = {"key": "value"}
     
     # 正しいisinstance()の使用
     assert isinstance(test_string, str)
     assert isinstance(test_int, int)
     assert isinstance(test_list, list)
+    assert isinstance(test_dict, dict)
     
     # 複数の型のチェック
     assert isinstance(test_string, (str, bytes))
     assert isinstance(test_int, (int, float))
     assert isinstance(test_list, (list, tuple))
+    
+    # MagicMockの型チェック
+    mock_obj = MagicMock()
+    assert isinstance(mock_obj, MagicMock)  # 正しい: 型を渡す
+    assert not isinstance(mock_obj, str)
+    assert not isinstance(mock_obj, int)
 
 
 def test_mock_response_properties():
