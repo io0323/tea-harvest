@@ -30,12 +30,12 @@ jobs:
     - name: Set PYTHONPATH
       run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/backend" >> $GITHUB_ENV
     
-      - name: Run tests
-        run: |
-          cd backend
-          python -m pytest tests/test_ci_final_working.py -v
-          echo "Test exit code: $?"
-        continue-on-error: false
+    - name: Run tests
+      run: |
+        cd backend
+        python -m pytest tests/test_ci_final_working.py -v
+        echo "Test exit code: $?"
+      continue-on-error: false
     
     - name: Run linting
       run: |
